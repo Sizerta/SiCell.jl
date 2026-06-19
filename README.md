@@ -13,6 +13,7 @@ SiCell.jl is a modern, Julia-native toolkit for single-cell RNA sequencing (scRN
 * 📂 Data loading:
 
   * 10x Genomics matrices
+  * Hierarchical Data Format(.h5)
   * AnnData (`.h5ad`) files
 
 * 🧪 Quality control:
@@ -47,7 +48,7 @@ SiCell.jl is a modern, Julia-native toolkit for single-cell RNA sequencing (scRN
 
 * 🏷️ Cell type annotation:
 
-  * Marker-based annotation using CellMarker references
+  * Marker-based annotation using CellMarker and PangaloDb as references
 
 * 🌱 Trajectory analysis:
 

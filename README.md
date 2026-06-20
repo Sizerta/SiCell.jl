@@ -1,6 +1,10 @@
 # SiCell.jl — High-Performance Single-Cell RNA-seq Analysis in Native Julia
 ![SiCell Poster](./docs/src/Poster_SiCell.png)
 
+[![CI](https://github.com/Sizerta/SiCell.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/Sizerta/SiCell.jl/actions/workflows/CI.yml)
+[![Coverage](https://codecov.io/gh/Sizerta/SiCell.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/Sizerta/SiCell.jl)
+[![Docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://sizerta.github.io/SiCell.jl/stable)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 SiCell.jl is a modern, Julia-native toolkit for single-cell RNA sequencing (scRNA-seq) analysis. It provides a complete end-to-end workflow from raw count matrices to biological interpretation, combining high performance, scalable sparse computations, and an intuitive API.
 

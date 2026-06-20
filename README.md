@@ -92,10 +92,8 @@ Benchmarks are currently being expanded on datasets ranging from PBMCs to large-
 
 ```julia
 using Pkg
+Pkg.add("SiCell")
 
-Pkg.add(
-    url="https://github.com/Sizerta/SiCell.jl"
-)
 ```
 
 ---

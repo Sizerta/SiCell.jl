@@ -95,8 +95,6 @@ Benchmarks are currently being expanded on datasets ranging from PBMCs to large-
 
 # 📦 Installation
 
-### Development version
-
 ```julia
 using Pkg
 Pkg.add("SiCell")

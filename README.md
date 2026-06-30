@@ -1,9 +1,10 @@
 # SiCell.jl — High-Performance Single-Cell RNA-seq Analysis in Native Julia
 ![SiCell Poster](./docs/src/Poster_SiCell.png)
 
-[![CI](https://github.com/Sizerta/SiCell.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/Sizerta/SiCell.jl/actions/workflows/CI.yml)
+[![Pkg](https://img.shields.io/badge/Julia-General%20Registry-blue)](https://github.com/JuliaRegistries/General)
 [![Docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://sizerta.github.io/SiCell.jl)
 [![SiCell](https://img.shields.io/badge/registry-General-blue)](https://juliahub.com/ui/Packages/General/SiCell)
+[![CI](https://github.com/Sizerta/SiCell.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/Sizerta/SiCell.jl/actions/workflows/CI.yml)
 [![Version](https://juliahub.com/docs/SiCell/version.svg)](https://juliahub.com/ui/Packages/General/SiCell)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -173,7 +174,20 @@ Documentation includes:
 * API reference
 
 ---
+## Companion Python Package
 
+While **SiCell.jl** provides a comprehensive Julia-native framework for single-cell RNA-seq analysis, the **Trajectory Uncertainty Framework (TUF)** is also available as a standalone Python package for users working in the Scanpy ecosystem.
+
+**TUF** introduces two complementary uncertainty metrics:
+
+- Temporal Entropy Score (TES)
+- Trajectory Divergence Score (TDS)
+
+Repository:
+
+**https://github.com/Sizerta/tuf_python**
+
+---
 # 📄 Citation
 
 A manuscript describing SiCell.jl and the Trajectory Uncertainty Framework (TUF) is currently in preparation.

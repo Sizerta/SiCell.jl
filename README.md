@@ -1,11 +1,10 @@
 # SiCell.jl — High-Performance Single-Cell RNA-seq Analysis in Native Julia
 ![SiCell Poster](./docs/src/Poster_SiCell.png)
 
-[<image-card alt="Version" src="https://juliahub.com/docs/SiCell/version.svg" ></image-card>](https://juliahub.com/ui/Packages/General/SiCell)
-[<image-card alt="Docs" src="https://img.shields.io/badge/docs-stable-blue.svg" ></image-card>](https://sizerta.github.io/SiCell.jl/stable/)
-[<image-card alt="CI" src="https://github.com/Sizerta/SiCell.jl/actions/workflows/CI.yml/badge.svg" ></image-card>](https://github.com/Sizerta/SiCell.jl/actions/workflows/CI.yml)
+[![CI](https://github.com/Sizerta/SiCell.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/Sizerta/SiCell.jl/actions/workflows/CI.yml)
+[![Docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://sizerta.github.io/SiCell.jl)
 [![SiCell](https://img.shields.io/badge/registry-General-blue)](https://juliahub.com/ui/Packages/General/SiCell)
-
+[![Version](https://juliahub.com/docs/SiCell/version.svg)](https://juliahub.com/ui/Packages/General/SiCell)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 

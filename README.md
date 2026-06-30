@@ -173,18 +173,18 @@ Documentation includes:
 * API reference
 
 ---
-## Companion Python Package
+## Related Software
 
-While **SiCell.jl** provides a comprehensive Julia-native framework for single-cell RNA-seq analysis, the **Trajectory Uncertainty Framework (TUF)** is also available as a standalone Python package for users working in the Scanpy ecosystem.
+Interested in quantifying uncertainty in trajectory inference?
 
-**TUF** introduces two complementary uncertainty metrics:
+**TUF (Trajectory Uncertainty Framework)** is a standalone Python package that introduces two complementary uncertainty metrics for single-cell trajectory analysis:
 
-- Temporal Entropy Score (TES)
-- Trajectory Divergence Score (TDS)
+- **Temporal Entropy Score (TES)** — measures local temporal mixing.
+- **Trajectory Divergence Score (TDS)** — quantifies directional ambiguity near branching regions.
 
-Repository:
+TUF is designed for the Scanpy ecosystem and can be used alongside any pseudotime inference method that stores results in an `AnnData` object.
 
-**https://github.com/Sizerta/tuf_python**
+**Repository:** https://github.com/Sizerta/tuf_python
 
 ---
 # 📄 Citation

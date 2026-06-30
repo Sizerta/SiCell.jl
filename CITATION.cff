@@ -1,9 +1,5 @@
 cff-version: 1.0.0
-message: "If you use this work, please cite the following paper (preprint version)."
+message: "If you use this work, please cite the following paper if it was available (preprint version)."
 author:
   - family-names: Mahdavifar
     given-names: Masoud
-title: "My Research Paper Title"
-version: "0.1.0"
-date-released: 2026-06
-doi: "arXiv:XXXX.XXXX" 

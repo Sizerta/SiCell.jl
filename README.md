@@ -1,5 +1,5 @@
 # SiCell.jl — High-Performance Single-Cell RNA-seq Analysis in Native Julia
-![SiCell Poster](./docs/src/Poster_SiCell.png)
+![SiCell Poster](docs/Poster_SiCell.png)
 
 [![CI](https://github.com/Sizerta/SiCell.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/Sizerta/SiCell.jl/actions/workflows/CI.yml)
 [![Docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://sizerta.github.io/SiCell.jl)

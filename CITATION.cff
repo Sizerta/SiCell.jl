@@ -1,5 +1,45 @@
-cff-version: 1.0.0
-message: "If you use this work, please cite the following paper if it was available (preprint version)."
-author:
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "SiCell.jl: A High-Performance, Native Julia Framework for End-to-End Single-Cell RNA-Sequencing Analysis"
+type: software
+version: 0.1.1
+date-released: 2026-06-18
+authors:
   - family-names: Mahdavifar
     given-names: Masoud
+    orcid: "https://orcid.org/0000-0002-8602-8092"
+repository-code: "https://github.com/Sizerta/SiCell.jl"
+url: "https://sizerta.github.io/SiCell.jl/"
+license: MIT
+keywords:
+  - single-cell RNA sequencing
+  - scRNA-seq
+  - Julia
+  - bioinformatics
+  - trajectory inference
+  - sparse matrix computation
+preferred-citation:
+  type: article
+  title: "SiCell.jl: A High-Performance, Native Julia Framework for End-to-End Single-Cell RNA-Sequencing Analysis"
+  authors:
+    - family-names: Mahdavifar
+      given-names: Masoud
+      orcid: "https://orcid.org/0000-0002-8602-8092"
+  year: 2026
+  # TODO: once this is posted to bioRxiv, add a `doi:` field here (and update
+  # `url:` to the bioRxiv page) so this becomes a fully resolvable citation.
+  url: "https://github.com/Sizerta/SiCell.jl"
+references:
+  - type: article
+    title: "Trajectory Uncertainty Framework (TUF): A Modular Framework for Identifying Transitional and Branch-Point Cell States in Single-Cell Trajectory Analysis"
+    authors:
+      - family-names: Mahdavifar
+        given-names: Masoud
+        orcid: "https://orcid.org/0000-0002-8602-8092"
+      - family-names: Mohammadifar
+        given-names: Zahra
+      - family-names: Iranpourtari
+        given-names: Tara
+    year: 2026
+    doi: "10.64898/2026.07.31.742012"
+    notes: "Biological validation of the Trajectory Uncertainty Framework (TES/TDS) module shipped in this package; cite this in addition to the software citation above when using TUF specifically."

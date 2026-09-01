@@ -165,6 +165,32 @@ end
         @test "dpt" in names(obj.meta_data)
     end
 
+    # --- 6. TRAJECTORY UNCERTAINTY FRAMEWORK (TUF) ---
+    @testset "Trajectory Uncertainty (TES/TDS/LPS)" begin
+        obj = create_test_object(100, 50)
+        normalize_data!(obj)
+        find_variable_features!(obj, n_features=50)
+        run_pca!(obj, ndims=10)
+        find_neighbors!(obj, k=10)
+        run_diffusion_map!(obj, n_components=5)
+        run_pseudotime!(obj, 1)
+
+        trajectory_uncertainty!(obj)
+        @test "traj_unc_tes" in names(obj.meta_data)
+        @test "traj_unc_tds" in names(obj.meta_data)
+        @test "traj_unc_lps" in names(obj.meta_data)
+
+        # TES and TDS are both derived quantities bounded in [0,1] when
+        # pseudotime is in [0,1] (see docstring / software paper Section 2.9)
+        @test all(0.0 .<= obj.meta_data.traj_unc_tes .<= 1.0)
+        @test all(0.0 .<= obj.meta_data.traj_unc_tds .<= 1.0)
+        @test eltype(obj.meta_data.traj_unc_lps) == Float64
+
+        # Bounds-check guard: pseudotime outside [0,1] must error, not silently compute
+        obj.meta_data.bad_pt = obj.meta_data.pseudotime .+ 10.0
+        @test_throws ErrorException trajectory_uncertainty!(obj, pseudotime_key="bad_pt")
+    end
+
     # --- 7. Differential expression & Annotation ---
     @testset "Differential Expression" begin
         obj = create_test_object(100, 100)

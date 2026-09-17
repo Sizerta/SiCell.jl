@@ -205,6 +205,6 @@ Bug reports, feature requests, and pull requests are welcome.
 
 ---
 
-# 📜 License
+# License
 
 SiCell.jl is released under the MIT License.

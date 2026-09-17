@@ -15,49 +15,49 @@ SiCell.jl is a modern, Julia-native toolkit for single-cell RNA sequencing (scRN
 
 # 🚀 Key Features
 
-## 🔬 Complete Single-Cell Analysis Pipeline
+##  Complete Single-Cell Analysis Pipeline
 
-* 📂 Data loading:
+* Data loading:
 
   * 10x Genomics matrices
   * Hierarchical Data Format(`.h5`)
   * AnnData (`.h5ad`) files
 
-* 🧪 Quality control:
+*  Quality control:
 
   * Cell filtering
   * Mitochondrial content analysis
   * Gene and count statistics
 
-* ⚖️ Preprocessing:
+*  Preprocessing:
 
   * Library-size normalization
   * Log transformation
   * Highly variable gene selection
   * Feature scaling
 
-* 📊 Dimensionality reduction:
+*  Dimensionality reduction:
 
   * Randomized PCA
   * UMAP
   * Diffusion Maps
 
-* 🧩 Clustering:
+*  Clustering:
 
   * Graph-based clustering
   * K-Means clustering
   * Efficient KNN graph construction
 
-* 🧬 Differential expression:
+*  Differential expression:
 
   * Sparse-aware Wilcoxon rank-sum testing
   * Multiple-testing correction
 
-* 🏷️ Cell type annotation:
+*  Cell type annotation:
 
   * Marker-based annotation using CellMarker and PangaloDb as references
 
-* 🌱 Trajectory analysis:
+*  Trajectory analysis:
 
   * Diffusion pseudotime
   * **Trajectory Uncertainty Framework (TUF)**:
@@ -65,7 +65,7 @@ SiCell.jl is a modern, Julia-native toolkit for single-cell RNA sequencing (scRN
     * TES (Temporal Entropy Score) — local temporal heterogeneity
     * TDS (Trajectory Divergence Score) — directional uncertainty and branching
 
-* 🎨 Publication-quality visualization:
+*  Publication-quality visualization:
 
   * UMAP embeddings
   * Feature plots
@@ -93,7 +93,7 @@ Benchmarks are currently being expanded on datasets ranging from PBMCs to large-
 
 ---
 
-# 📦 Installation
+#  Installation
 
 ```julia
 using Pkg
@@ -142,7 +142,7 @@ dim_plot(
 
 ---
 
-# 🌱 Example Applications
+#  Example Applications
 
 SiCell has been tested on multiple biological systems, including:
 
@@ -162,7 +162,7 @@ Example analyses include:
 
 ---
 
-# 📚 Documentation
+#  Documentation
 
 Documentation includes:
 
@@ -187,7 +187,7 @@ TUF is designed for the Scanpy ecosystem and can be used alongside any pseudotim
 **Repository:** https://github.com/Sizerta/tuf_python
 
 ---
-# 📄 Citation
+#  Citation
 
 A manuscript describing SiCell.jl and the Trajectory Uncertainty Framework (TUF) is currently in preparation.
 
@@ -199,7 +199,7 @@ https://github.com/Sizerta/SiCell.jl
 
 ---
 
-# 🤝 Contributing
+#  Contributing
 
 Bug reports, feature requests, and pull requests are welcome.
 

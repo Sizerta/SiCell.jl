@@ -67,12 +67,14 @@ dim_plot(
 
 #  Documentation
 Please look at the site below:
+
 https://sizerta.github.io/SiCell.jl/
 
 Documentation includes:
 
 * Getting started tutorials
 * Complete analysis workflows
+* *Example Applications
 * Case studies
 * Visualization examples
 * API reference

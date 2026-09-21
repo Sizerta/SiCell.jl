@@ -13,6 +13,104 @@ SiCell.jl is a modern, Julia-native toolkit for single-cell RNA sequencing (scRN
 
 ---
 
+
+
+#  Installation
+
+```julia
+using Pkg
+Pkg.add("SiCell")
+
+```
+
+---
+
+# ⚡ Quick Start
+
+```julia
+using SiCell
+
+# Load data
+obj = read_10x("path/to/filtered_feature_bc_matrix")
+
+# Quality control
+calculate_qc_metrics!(obj)
+filter_cells!(
+    obj;
+    min_genes=200,
+    max_mito=5.0
+)
+
+# Preprocessing
+normalize_data!(obj)
+find_variable_features!(obj)
+
+# Dimensionality reduction
+run_pca!(obj)
+
+# Graph construction and clustering
+find_neighbors!(obj, k=20)
+run_graph_clustering!(obj)
+
+# Visualization
+run_umap!(obj)
+
+dim_plot(
+    obj,
+    reduction="umap",
+    group="graph_cluster"
+)
+```
+
+---
+
+
+#  Documentation
+Please look at the site below:
+https://sizerta.github.io/SiCell.jl/
+
+Documentation includes:
+
+* Getting started tutorials
+* Complete analysis workflows
+* Case studies
+* Visualization examples
+* API reference
+---
+#  Example Applications
+
+SiCell has been tested on multiple biological systems, including:
+
+* Human PBMC datasets
+* Large-scale tumor microenvironment datasets
+
+  * Breast cancer (>34,000 cells)
+  * Glioblastoma datasets
+
+Example analyses include:
+
+* Automated cell-type annotation
+* Marker discovery
+* Differential expression
+* Trajectory reconstruction
+* Identification of uncertain transition states using TUF
+
+
+---
+## Related Software
+
+Interested in quantifying uncertainty in trajectory inference?
+
+**TUF (Trajectory Uncertainty Framework)** is a standalone Python package that introduces two complementary uncertainty metrics for single-cell trajectory analysis:
+
+- **Temporal Entropy Score (TES)** — measures local temporal mixing.
+- **Trajectory Divergence Score (TDS)** — quantifies directional ambiguity near branching regions.
+
+TUF is designed for the Scanpy ecosystem and can be used alongside any pseudotime inference method that stores results in an `AnnData` object.
+
+**Repository:** https://github.com/Sizerta/tuf_python
+
+---
 # 🚀 Key Features
 
 ##  Complete Single-Cell Analysis Pipeline
@@ -90,101 +188,6 @@ SiCell is designed around efficient sparse matrix operations, multithreading, an
 * Efficient graph construction and downstream analysis
 
 Benchmarks are currently being expanded on datasets ranging from PBMCs to large-scale tumor atlases.
-
----
-
-#  Installation
-
-```julia
-using Pkg
-Pkg.add("SiCell")
-
-```
-
----
-
-# ⚡ Quick Start
-
-```julia
-using SiCell
-
-# Load data
-obj = read_10x("path/to/filtered_feature_bc_matrix")
-
-# Quality control
-calculate_qc_metrics!(obj)
-filter_cells!(
-    obj;
-    min_genes=200,
-    max_mito=5.0
-)
-
-# Preprocessing
-normalize_data!(obj)
-find_variable_features!(obj)
-
-# Dimensionality reduction
-run_pca!(obj)
-
-# Graph construction and clustering
-find_neighbors!(obj, k=20)
-run_graph_clustering!(obj)
-
-# Visualization
-run_umap!(obj)
-
-dim_plot(
-    obj,
-    reduction="umap",
-    group="graph_cluster"
-)
-```
-
----
-
-#  Example Applications
-
-SiCell has been tested on multiple biological systems, including:
-
-* Human PBMC datasets
-* Large-scale tumor microenvironment datasets
-
-  * Breast cancer (>34,000 cells)
-  * Glioblastoma datasets
-
-Example analyses include:
-
-* Automated cell-type annotation
-* Marker discovery
-* Differential expression
-* Trajectory reconstruction
-* Identification of uncertain transition states using TUF
-
----
-
-#  Documentation
-
-Documentation includes:
-
-* Getting started tutorials
-* Complete analysis workflows
-* Case studies
-* Visualization examples
-* API reference
-
----
-## Related Software
-
-Interested in quantifying uncertainty in trajectory inference?
-
-**TUF (Trajectory Uncertainty Framework)** is a standalone Python package that introduces two complementary uncertainty metrics for single-cell trajectory analysis:
-
-- **Temporal Entropy Score (TES)** — measures local temporal mixing.
-- **Trajectory Divergence Score (TDS)** — quantifies directional ambiguity near branching regions.
-
-TUF is designed for the Scanpy ecosystem and can be used alongside any pseudotime inference method that stores results in an `AnnData` object.
-
-**Repository:** https://github.com/Sizerta/tuf_python
 
 ---
 #  Citation

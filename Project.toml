@@ -1,6 +1,6 @@
 name = "SiCell"
 uuid = "95f86b30-9ecb-4228-906f-48049b53e836"
-authors = ["Cont <masoud.m5121@gmail.com>"]
+authors = ["Masoud Mahdavifar <masoud.m5121@gmail.com>"]
 version = "0.1.1"
 
 [deps]

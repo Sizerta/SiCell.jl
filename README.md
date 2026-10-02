@@ -74,7 +74,7 @@ Documentation includes:
 
 * Getting started tutorials
 * Complete analysis workflows
-* *Example Applications
+* Example Applications
 * Case studies
 * Visualization examples
 * API reference
@@ -85,7 +85,6 @@ SiCell has been tested on multiple biological systems, including:
 
 * Human PBMC datasets
 * Large-scale tumor microenvironment datasets
-
   * Breast cancer (>34,000 cells)
   * Glioblastoma datasets
 
@@ -117,63 +116,53 @@ TUF is designed for the Scanpy ecosystem and can be used alongside any pseudotim
 
 ##  Complete Single-Cell Analysis Pipeline
 
-* Data loading:
+- Data loading:
+  - 10x Genomics matrices
+  - Hierarchical Data Format(`.h5`)
+  - AnnData (`.h5ad`) files
 
-  * 10x Genomics matrices
-  * Hierarchical Data Format(`.h5`)
-  * AnnData (`.h5ad`) files
+- Quality control:
+  - Cell filtering
+  - Mitochondrial content analysis
+  - Gene and count statistics
 
-*  Quality control:
+- Preprocessing:
+  - Library-size normalization
+  - Log transformation
+  - Highly variable gene selection
+  - Feature scaling
 
-  * Cell filtering
-  * Mitochondrial content analysis
-  * Gene and count statistics
+- Dimensionality reduction:
+  - Randomized PCA
+  - UMAP
+  - Diffusion Maps
 
-*  Preprocessing:
+- Clustering:
+  - Graph-based clustering
+  - K-Means clustering
+  - Efficient KNN graph construction
 
-  * Library-size normalization
-  * Log transformation
-  * Highly variable gene selection
-  * Feature scaling
+- Differential expression:
+  - Sparse-aware Wilcoxon rank-sum testing
+  - Multiple-testing correction
 
-*  Dimensionality reduction:
+- Cell type annotation:
+  - Marker-based annotation using CellMarker and PanglaoDB as references
 
-  * Randomized PCA
-  * UMAP
-  * Diffusion Maps
+- Trajectory analysis:
+  - Diffusion pseudotime
+  - **Trajectory Uncertainty Framework (TUF)**:
+    - TES (Temporal Entropy Score) — local temporal heterogeneity
+    - TDS (Trajectory Divergence Score) — directional uncertainty and branching
 
-*  Clustering:
-
-  * Graph-based clustering
-  * K-Means clustering
-  * Efficient KNN graph construction
-
-*  Differential expression:
-
-  * Sparse-aware Wilcoxon rank-sum testing
-  * Multiple-testing correction
-
-*  Cell type annotation:
-
-  * Marker-based annotation using CellMarker and PangaloDb as references
-
-*  Trajectory analysis:
-
-  * Diffusion pseudotime
-  * **Trajectory Uncertainty Framework (TUF)**:
-
-    * TES (Temporal Entropy Score) — local temporal heterogeneity
-    * TDS (Trajectory Divergence Score) — directional uncertainty and branching
-
-*  Publication-quality visualization:
-
-  * UMAP embeddings
-  * Feature plots
-  * Violin plots
-  * Heatmaps
-  * Volcano plots
-  * PAGA-style connectivity graphs
-  * Trajectory uncertainty maps
+- Publication-quality visualization:
+  - UMAP embeddings
+  - Feature plots
+  - Violin plots
+  - Heatmaps
+  - Volcano plots
+  - PAGA-style connectivity graphs
+  - Trajectory uncertainty maps
 
 ---
 
@@ -194,19 +183,19 @@ Benchmarks are currently being expanded on datasets ranging from PBMCs to large-
 ---
 #  Citation
 
-A manuscript describing SiCell.jl and the Trajectory Uncertainty Framework (TUF) is currently in preparation.
+If you use SiCell.jl in your research, please cite the software. Citation metadata is provided in [`CITATION.cff`](CITATION.cff) (GitHub's "Cite this repository" button generates BibTeX/APA from it):
 
-If you use SiCell in your research before publication, please cite the GitHub repository.
+> Mahdavifar M. *SiCell.jl: A High-Performance, Native Julia Framework for End-to-End Single-Cell RNA-Sequencing Analysis* (Version 0.1.1) [Computer software]. https://github.com/Sizerta/SiCell.jl
 
-Repository:
+If you use the Trajectory Uncertainty Framework (TES/TDS) in SiCell, please also cite the TUF preprint:
 
-https://github.com/Sizerta/SiCell.jl
+> Mahdavifar M, Mohammadifar Z, Iranpourtari T. Trajectory Uncertainty Framework (TUF): A Modular Framework for Identifying Transitional and Branch-Point Cell States in Single-Cell Trajectory Analysis. *bioRxiv* (2026). https://doi.org/10.64898/2026.07.31.742012
 
 ---
 
 #  Contributing
 
-Bug reports, feature requests, and pull requests are welcome.
+Bug reports, feature requests, and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 

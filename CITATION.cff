@@ -18,17 +18,6 @@ keywords:
   - bioinformatics
   - trajectory inference
   - sparse matrix computation
-preferred-citation:
-  type: article
-  title: "SiCell.jl: A High-Performance, Native Julia Framework for End-to-End Single-Cell RNA-Sequencing Analysis"
-  authors:
-    - family-names: Mahdavifar
-      given-names: Masoud
-      orcid: "https://orcid.org/0000-0002-8602-8092"
-  year: 2026
- 
-  # `url:` to the bioRxiv page) so this becomes a fully resolvable citation.
-  url: "https://github.com/Sizerta/SiCell.jl"
 references:
   - type: article
     title: "Trajectory Uncertainty Framework (TUF): A Modular Framework for Identifying Transitional and Branch-Point Cell States in Single-Cell Trajectory Analysis"

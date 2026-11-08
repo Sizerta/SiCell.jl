@@ -15,7 +15,7 @@ SiCell.jl is a modern, Julia-native toolkit for single-cell RNA sequencing (scRN
 
 
 
-#  Installation
+# Installation
 
 ```julia
 using Pkg
@@ -25,7 +25,7 @@ Pkg.add("SiCell")
 
 ---
 
-# ⚡ Quick Start
+# Quick Start
 
 ```julia
 using SiCell

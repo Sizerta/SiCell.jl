@@ -166,6 +166,42 @@ TUF is designed for the Scanpy ecosystem and can be used alongside any pseudotim
 
 ---
 
+---
+
+# AnnData interoperability (optional)
+
+SiCell can interoperate with [Muon.jl](https://github.com/scverse/Muon.jl), the Julia implementation of the AnnData and MuData data structures. Muon is an optional dependency: existing SiCell workflows do not need to install it.
+
+```julia
+using Pkg
+Pkg.add("Muon")
+
+using SiCell
+using Muon
+
+# Read an AnnData file with Muon.jl
+adata = Muon.readh5ad("pbmc.h5ad")
+
+# Convert to SiCell's genes × cells representation
+obj = from_anndata(adata)
+
+# If raw counts are stored in a layer, select that layer explicitly
+# obj = from_anndata(adata; layer="counts")
+
+calculate_qc_metrics!(obj)
+normalize_data!(obj)
+run_pca!(obj)
+run_umap!(obj)
+
+# Export the updated object as AnnData
+adata_out = to_anndata(obj; X=:normalized)
+Muon.writeh5ad("pbmc_sicell.h5ad", adata_out)
+```
+
+`from_anndata` transposes AnnData's observations × variables matrix into SiCell's genes × cells layout. Observation/variable metadata, axis names, layers, embeddings (`obsm`), pairwise annotations (`obsp`/`varp`) and unstructured metadata (`uns`) are retained for export. SiCell neighbor graphs are exported as `obsp["connectivities"]` and `obsp["distances"]`. The selected input matrix is treated as SiCell's count matrix; choose a raw-count layer explicitly when `adata.X` contains normalized expression. `to_anndata` supports `X=:counts` (default), `X=:normalized`, and `X=:scaled`. When exporting a non-count matrix, raw counts are also included in `layers["counts"]`. `X=:scaled` is only available when scaled data contain all genes. Backed AnnData objects are not yet supported.
+
+---
+
 # ⚡ Performance
 
 SiCell is designed around efficient sparse matrix operations, multithreading, and memory-aware algorithms.

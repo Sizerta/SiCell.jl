@@ -252,3 +252,6 @@ end
         @test_nowarn paga_plot(obj, cluster_col="cluster")
     end
 end
+
+# Optional integration with Muon.jl (installed as a test-only dependency).
+include("interoperability.jl")

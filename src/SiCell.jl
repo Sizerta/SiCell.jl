@@ -38,12 +38,18 @@ include("annotation.jl")
 include("trajectory_inference.jl")   # Trajectory + TUF (Core Feature)
 include("plotting.jl")              # High-quality scRNA-seq visualizations
 
+# Optional interoperability methods are implemented by package extensions.
+# Declaring the generic functions here keeps Muon.jl an optional dependency.
+function from_anndata end
+function to_anndata end
+
 # ------------------------------------------------------------------------------
 # Exported API
 # ------------------------------------------------------------------------------
 
 # Core & IO
 export SingleCellObject, subset_object, read_10x, read_h5ad, read_h5
+export from_anndata, to_anndata
 
 # Quality Control
 export calculate_qc_metrics!, filter_cells!

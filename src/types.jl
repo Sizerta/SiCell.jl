@@ -24,6 +24,7 @@ normalized data, cell/gene metadata, and dimensionality reductions.
 - `var_data`: Gene-level information (Names, IDs, HVG status).
 - `reductions`: Dictionary of embeddings (e.g., "pca", "umap", "diffusion").
 - `graphs`: Dictionary for adjacency matrices (KNN, SNN).
+- `anndata`: Optional AnnData fields retained by the Muon interoperability extension.
 """
 mutable struct SingleCellObject
     counts::SparseMatrixCSC{Float64,Int64}
@@ -33,6 +34,9 @@ mutable struct SingleCellObject
     var_data::DataFrame
     reductions::Dict{String,Matrix{Float64}}
     graphs::Dict{String,Any}
+    # Optional fields copied from AnnData by the Muon extension.  This keeps
+    # interoperability metadata without making Muon a runtime dependency.
+    anndata::Dict{String,Any}
 
     function SingleCellObject(raw_counts::AbstractMatrix, meta::DataFrame, var::DataFrame)
         # Ensure counts are sparse and Float64 for mathematical operations
@@ -52,7 +56,7 @@ mutable struct SingleCellObject
         end
 
         new(sparse_counts, nothing, nothing, meta, var,
-            Dict{String,Matrix{Float64}}(), Dict{String,Any}())
+            Dict{String,Matrix{Float64}}(), Dict{String,Any}(), Dict{String,Any}())
     end
 end
 
@@ -98,6 +102,8 @@ function subset_object(obj::SingleCellObject, mask::AbstractVector)
 
     # Initialize the new object (reusing var_data as genes don't change)
     new_obj = SingleCellObject(new_counts, new_meta, copy(obj.var_data))
+    new_obj.anndata = deepcopy(obj.anndata)
+    _subset_anndata_obs!(new_obj.anndata, mask)
 
     # Transfer normalized data if it exists
     if !isnothing(obj.norm_data)
@@ -109,4 +115,44 @@ function subset_object(obj::SingleCellObject, mask::AbstractVector)
     # Here we reset them to maintain biological consistency.
     println("Successfully subsetted to $(size(new_obj.counts, 2)) cells.")
     return new_obj
+end
+
+"""
+    _subset_anndata_obs!(payload, indices)
+
+Subset observation-aligned AnnData fields retained by `from_anndata`. This is
+internal bookkeeping; the core package does not depend on Muon.
+"""
+function _subset_anndata_obs!(payload::Dict{String,Any}, indices)
+    isempty(payload) && return payload
+
+    if haskey(payload, "obs_names")
+        payload["obs_names"] = payload["obs_names"][indices]
+    end
+
+    # AnnData layers and obsm are aligned to observations on their first axis.
+    for section in ("layers", "obsm")
+        mapping = get(payload, section, nothing)
+        mapping isa AbstractDict || continue
+        for (key, value) in collect(mapping)
+            if value isa DataFrame
+                mapping[key] = value[indices, :]
+            elseif value isa AbstractVector
+                mapping[key] = value[indices]
+            elseif value isa AbstractMatrix
+                mapping[key] = value[indices, :]
+            end
+        end
+    end
+
+    # Pairwise observation annotations must be subset on both axes.
+    obsp = get(payload, "obsp", nothing)
+    if obsp isa AbstractDict
+        for (key, value) in collect(obsp)
+            value isa AbstractMatrix || continue
+            obsp[key] = value[indices, indices]
+        end
+    end
+
+    return payload
 end

@@ -92,16 +92,21 @@ function filter_cells!(obj::SingleCellObject;
     # Subset Data
     obj.counts = obj.counts[:, keep_mask]
     obj.meta_data = obj.meta_data[keep_mask, :]
+    _subset_anndata_obs!(obj.anndata, keep_mask)
 
     # Subset dependent data if present
     if !isnothing(obj.norm_data)
         obj.norm_data = obj.norm_data[:, keep_mask]
     end
 
-    # Subset dimensionality reductions (UMAP, PCA, etc.)
+    # Reductions are stored as (Cells x Dimensions), matching AnnData's obsm.
     for key in keys(obj.reductions)
-        # Note: Reductions are stored as (Dims x Cells) internally
-        obj.reductions[key] = obj.reductions[key][:, keep_mask]
+        obj.reductions[key] = obj.reductions[key][keep_mask, :]
+    end
+
+    # Scaled data are stored as (Genes x Cells).
+    if !isnothing(obj.scaled_data)
+        obj.scaled_data = obj.scaled_data[:, keep_mask]
     end
 
     println("Filtering complete: Kept $n_after / $n_before cells ($(round(n_after/n_before*100, digits=1))%).")

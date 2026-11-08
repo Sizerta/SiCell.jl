@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Optional Muon.jl interoperability through `from_anndata` and `to_anndata`,
+  including AnnData metadata, layers, embeddings, pairwise annotations and
+  unstructured metadata preservation.
 - Tests for the Trajectory Uncertainty Framework (`trajectory_uncertainty!`):
   TES/TDS/LPS columns are created, TES and TDS lie in [0, 1], and pseudotime
   outside [0, 1] raises an error.
@@ -17,12 +20,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `CHANGELOG.md` (this file).
 
 ### Changed
+- `Project.toml`: declare Muon.jl as an optional weak dependency and register
+  `SiCellMuonExt` as a Julia package extension.
+- README: document Muon.jl-based AnnData import/export and count-layer selection.
 - `CITATION.cff` updated to CFF 1.2.0 with full software metadata and a
   reference to the TUF preprint (doi:10.64898/2026.07.31.742012); removed a
   placeholder `preferred-citation` for a SiCell article that is not yet published.
 - README: citation section now points to `CITATION.cff` and the TUF preprint;
   fixed the PanglaoDB spelling and the nesting of the feature lists.
 - `Project.toml`: author field now lists the maintainer's full name.
+
+### Fixed
+- `filter_cells!` now subsets cell embeddings along their observation axis
+  (rows), matching the cells × dimensions layout used by AnnData and SiCell.
 
 ## [0.1.1] - 2026-06-18
 

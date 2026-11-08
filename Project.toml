@@ -58,9 +58,17 @@ Statistics = "1"
 StatsBase = "0.34" 
 StatsPlots = "0.15, 0.16"
 UMAP = "0.1"
+Muon = "0.2"
+
+[weakdeps]
+Muon = "446846d7-b4ce-489d-bf74-72da18fe3629"
+
+[extensions]
+SiCellMuonExt = "Muon"
 
 [extras]
+Muon = "446846d7-b4ce-489d-bf74-72da18fe3629"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Test", "Muon"]

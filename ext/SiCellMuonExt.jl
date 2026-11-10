@@ -8,18 +8,53 @@ using Graphs
 
 import SiCell: from_anndata, to_anndata
 
-# These are the value types accepted by Muon.AnnData's annotation mappings.
-const AnnDataAnnotationValue = Union{AbstractArray{<:Number},DataFrame}
+# Keep DataFrame annotations and numeric arrays losslessly in SiCell's
+# passthrough payload. Nullable numeric arrays may be present in that payload,
+# but Muon.AnnData's documented constructor accepts numeric arrays or
+# DataFrames, so those arrays are converted to DataFrames on export.
+const AnnDataAnnotationArray = AbstractArray{<:Union{Missing,Number}}
+const AnnDataAnnotationValue = Union{AnnDataAnnotationArray,DataFrame}
+const AnnDataConstructorAnnotationValue = Union{AbstractArray{<:Number},DataFrame}
 const AnnDataMatrixValue = AbstractMatrix{<:Number}
 
 function _copy_annotation_mapping(mapping)
     result = Dict{String,AnnDataAnnotationValue}()
     for (key, value) in pairs(mapping)
-        if value isa DataFrame || value isa AbstractArray{<:Number}
+        if value isa DataFrame || value isa AnnDataAnnotationArray
             result[String(key)] = deepcopy(value)
         end
     end
     return result
+end
+
+function _constructor_annotation_value(value::AnnDataAnnotationArray, key::String)
+    # Muon.AnnData's documented constructor accepts numeric arrays and
+    # DataFrames (unlike some MuData aligned mappings, it does not advertise
+    # nullable numeric arrays). Represent nullable 1-D/2-D annotations as a
+    # DataFrame so missing values are retained without relying on an
+    # unsupported AnnData array type.
+    if ndims(value) == 1
+        return DataFrame(annotation=collect(value))
+    elseif ndims(value) == 2
+        return DataFrame(value, :auto)
+    end
+    throw(ArgumentError(
+        "Cannot export nullable annotation '$key' with $(ndims(value)) dimensions to Muon.AnnData. " *
+        "Muon.AnnData supports numeric arrays or DataFrames; convert this annotation to a 1-D or 2-D DataFrame first."
+    ))
+end
+
+function _split_constructor_annotations(mapping)
+    accepted = Dict{String,AnnDataConstructorAnnotationValue}()
+    for (key, value) in pairs(mapping)
+        name = String(key)
+        if value isa DataFrame || value isa AbstractArray{<:Number}
+            accepted[name] = deepcopy(value)
+        elseif value isa AnnDataAnnotationArray
+            accepted[name] = _constructor_annotation_value(value, name)
+        end
+    end
+    return accepted
 end
 
 function _copy_matrix_mapping(mapping)
@@ -231,6 +266,8 @@ function to_anndata(obj::SiCell.SingleCellObject; X::Symbol=:counts)
     end
 
     varm = _copy_annotation_mapping(get(obj.anndata, "varm", Dict{String,AnnDataAnnotationValue}()))
+    obsm_constructor = _split_constructor_annotations(obsm)
+    varm_constructor = _split_constructor_annotations(varm)
     layers = _copy_matrix_mapping(get(obj.anndata, "layers", Dict{String,AnnDataMatrixValue}()))
     obsp = _copy_matrix_mapping(get(obj.anndata, "obsp", Dict{String,AnnDataMatrixValue}()))
     _add_sicell_graphs!(obsp, obj, n_cells)
@@ -241,19 +278,21 @@ function to_anndata(obj::SiCell.SingleCellObject; X::Symbol=:counts)
         layers["counts"] = copy(transpose(obj.counts))
     end
 
-    return Muon.AnnData(
+    adata_out = Muon.AnnData(
         X=X_out,
         obs=obs,
         obs_names=obs_names,
         var=var,
         var_names=var_names,
-        obsm=obsm,
-        varm=varm,
+        obsm=obsm_constructor,
+        varm=varm_constructor,
         layers=layers,
         obsp=obsp,
         varp=varp,
         uns=uns,
     )
+
+    return adata_out
 end
 
 end # module SiCellMuonExt

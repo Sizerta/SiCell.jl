@@ -245,11 +245,19 @@ function _read_h5ad_dataframe(file::HDF5.File, group_name::String)
 end
 
 """
-    read_h5ad(filepath::String; raw::Bool=true)
+    read_h5ad(filepath::String; raw::Bool=true, dense_orientation=:auto)
 
 Reads an AnnData (.h5ad) file - a standard format for single-cell RNA-seq data.
+
+For dense `X` matrices, `dense_orientation` controls the orientation of the
+array returned by HDF5.jl: `:auto` infers it from `obs` and `var` dimensions,
+`:obs_by_var` means cells × genes, and `:var_by_obs` means genes × cells.
+When the matrix is square and both orientations match the metadata dimensions,
+`:auto` raises an error rather than silently guessing.
 """
-function read_h5ad(filepath::String; raw::Bool=true)
+function read_h5ad(filepath::String; raw::Bool=true, dense_orientation::Symbol=:auto)
+    dense_orientation in (:auto, :obs_by_var, :var_by_obs) ||
+        throw(ArgumentError("dense_orientation must be :auto, :obs_by_var, or :var_by_obs; got :$dense_orientation."))
     # Input Validation
     if !isfile(filepath)
         error("File '$filepath' does not exist.")
@@ -261,13 +269,20 @@ function read_h5ad(filepath::String; raw::Bool=true)
     println("Loading .h5ad from: $filepath")
 
     h5open(filepath, "r") do file
-        # 1. Load Counts Matrix
+        # 1. Resolve the matrix group
         group_path = "X"
         if raw && haskey(file, "raw") && haskey(file["raw"], "X")
             group_path = "raw/X"
             println("  Using raw.X for counts...")
         end
 
+        # 2. Load metadata FIRST: it is required to disambiguate the matrix
+        #    orientation (writers differ, see the dense branch below).
+        obs_df = _read_h5ad_dataframe(file, "obs")
+        var_group = (group_path == "raw/X") ? "raw/var" : "var"
+        var_df = _read_h5ad_dataframe(file, var_group)
+
+        # 3. Load Counts Matrix
         counts_obj = file[group_path]
         counts = nothing
 
@@ -294,17 +309,41 @@ function read_h5ad(filepath::String; raw::Bool=true)
                 error("Unsupported sparse encoding: $encoding")
             end
         elseif isa(counts_obj, HDF5.Dataset)
-            # Dense Matrix
+            # Dense matrix orientation is inferred from the obs/var dimensions.
+            # Some HDF5 writers expose X as obs × var, while others expose the
+            # transposed var × obs layout to Julia. A square matrix matches both
+            # shapes, so require an explicit choice instead of silently guessing.
             matrix = read(counts_obj)
-            counts = sparse(matrix)
+            obs_var_shape = (nrow(obs_df), nrow(var_df))
+            var_obs_shape = (nrow(var_df), nrow(obs_df))
+            matches_obs_var = size(matrix) == obs_var_shape
+            matches_var_obs = size(matrix) == var_obs_shape
+
+            if matches_obs_var && matches_var_obs
+                dense_orientation === :auto && throw(ArgumentError(
+                    "Dense H5AD X has ambiguous square shape $(size(matrix)); pass dense_orientation=:obs_by_var or :var_by_obs to specify the orientation returned by HDF5.jl."
+                ))
+                if dense_orientation === :obs_by_var
+                    counts = sparse(transpose(matrix))
+                else
+                    counts = sparse(matrix)
+                end
+            elseif matches_obs_var
+                dense_orientation === :var_by_obs && throw(DimensionMismatch(
+                    "dense_orientation=:var_by_obs was requested, but dense X has obs × var shape $(size(matrix))."
+                ))
+                counts = sparse(transpose(matrix))
+            elseif matches_var_obs
+                dense_orientation === :obs_by_var && throw(DimensionMismatch(
+                    "dense_orientation=:obs_by_var was requested, but dense X has var × obs shape $(size(matrix))."
+                ))
+                counts = sparse(matrix)
+            else
+                error("Dense X matrix has size $(size(matrix)), which matches neither obs × var $(obs_var_shape) nor var × obs $(var_obs_shape).")
+            end
         else
             error("Could not read matrix from $group_path")
         end
-
-        # 2. Load Metadata
-        obs_df = _read_h5ad_dataframe(file, "obs")
-        var_group = (group_path == "raw/X") ? "raw/var" : "var"
-        var_df = _read_h5ad_dataframe(file, var_group)
 
         # === STANDARDIZE METADATA ===
         # Cell barcodes
@@ -347,16 +386,25 @@ function read_h5ad(filepath::String; raw::Bool=true)
 
         # 5. Load Embeddings (obsm) if available
         if haskey(file, "obsm")
+            n_cells = size(obj.counts, 2)
             for key in keys(file["obsm"])
-                clean_key = replace(key, "X_" => "")
-                embedding = read(file["obsm"][key])
+                clean_key = startswith(key, "X_") ? String(key[3:end]) : key
+                embedding = Float64.(read(file["obsm"][key]))
 
-                if size(embedding, 2) == size(obj.counts, 2)
+                # AnnData stores obsm entries as (n_cells x dims) with the
+                # observation axis first. SiCell reductions use the same
+                # cells x dims layout, so the matrix is stored as-is;
+                # transposing it would silently break run_umap! and
+                # filter_cells!, which index cells along the row axis.
+                if ndims(embedding) == 1
+                    obj.reductions[clean_key] = reshape(embedding, :, 1)
+                elseif size(embedding, 1) == n_cells
                     obj.reductions[clean_key] = embedding
-                elseif size(embedding, 1) == size(obj.counts, 2)
+                elseif size(embedding, 2) == n_cells
+                    # Legacy/malformed file with the observation axis last
                     obj.reductions[clean_key] = copy(transpose(embedding))
                 else
-                    println("Warning: Skipping reduction '$key' due to dimension mismatch: $(size(embedding)). Expected $(size(obj.counts, 2)) cells.")
+                    println("Warning: Skipping reduction '$key' due to dimension mismatch: $(size(embedding)). Expected $n_cells cells.")
                 end
             end
         end

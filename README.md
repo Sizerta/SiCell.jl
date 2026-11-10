@@ -137,14 +137,18 @@ TUF is designed for the Scanpy ecosystem and can be used alongside any pseudotim
   - UMAP
   - Diffusion Maps
 
-- Clustering:
+- Clustering and batch integration:
   - Graph-based clustering
   - K-Means clustering
   - Efficient KNN graph construction
+  - BBKNN and centroid-based batch alignment (a lightweight heuristic, not the Harmony algorithm)
 
 - Differential expression:
-  - Sparse-aware Wilcoxon rank-sum testing
+  - Sparse-aware Wilcoxon rank-sum marker testing
   - Multiple-testing correction
+  - Pseudobulk count aggregation by metadata group
+
+`find_all_markers` is a cell-level, cluster-versus-rest marker-discovery method and is best treated as exploratory. Cells from the same biological sample are not independent biological replicates. For condition-level differential inference with replicated samples, aggregate raw counts by a sample/donor identifier using `get_pseudobulk!` and fit an appropriate replicate-aware model to the sample-level counts. `get_pseudobulk!` performs aggregation only; it does not fit that model or calculate condition-level differential-expression statistics.
 
 - Cell type annotation:
   - Marker-based annotation using CellMarker and PanglaoDB as references
@@ -217,9 +221,11 @@ Muon.writeh5ad("pbmc_sicell.h5ad", adata_out)
 
 AnnData stores expression matrices as **cells × genes**, whereas SiCell stores them as **genes × cells**. `SiCell.from_anndata` transposes the selected matrix during import; `SiCell.to_anndata` restores the AnnData orientation during export.
 
-The adapter carries the observation and variable tables and their names, numeric matrix layers, embeddings (`obsm` and `varm`), pairwise annotations (`obsp` and `varp`), and unstructured metadata (`uns`) through the conversion. SiCell reductions are written to `obsm`; SiCell neighbor connectivity and distance information are exported to `obsp["connectivities"]` and `obsp["distances"]`, respectively.
+The adapter carries the observation and variable tables and their names, numeric matrix layers, embeddings, pairwise annotations (`obsp` and `varp`), and unstructured metadata (`uns`). DataFrame-valued annotations, including columns with `missing` values, are preserved. If a nullable numeric array is present in SiCell's passthrough payload, it is represented as a DataFrame on export because Muon.jl's documented AnnData constructor accepts numeric arrays or DataFrames. SiCell reductions are written to `obsm`; SiCell neighbor connectivity and distance information are exported to `obsp["connectivities"]` and `obsp["distances"]`, respectively.
 
 The selected input matrix (`adata.X` by default, or the layer specified with `layer`) becomes SiCell's count matrix. If `adata.X` already contains normalized expression, explicitly select the raw-count layer when importing, for example `layer="counts"`.
+
+The native `read_h5ad` reader infers dense matrix orientation from the observation and variable dimensions. For square dense matrices, where shape alone is ambiguous, pass `dense_orientation=:obs_by_var` or `dense_orientation=:var_by_obs` explicitly.
 
 `SiCell.to_anndata` supports `X=:counts` (the default), `X=:normalized`, and `X=:scaled`. When `X` is `:normalized` or `:scaled`, the original counts are also written to `layers["counts"]`. Exporting `X=:scaled` requires scaled data containing all genes; scaled data containing only a subset of highly variable genes cannot be exported as `X`. Backed AnnData objects are not currently supported; read the AnnData object into memory before calling `SiCell.from_anndata`.
 

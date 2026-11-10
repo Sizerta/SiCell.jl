@@ -1,6 +1,6 @@
 # ==============================================================================
 # SiCell Batch Integration Module
-# Contains: Dataset Merging, Harmony Correction, BBKNN, and Mixing Metrics
+# Contains: Dataset Merging, Centroid-based Batch Alignment, BBKNN, and Mixing Metrics
 # ==============================================================================
 
 # Note: This file assumes the following standard libraries are loaded in the parent module:
@@ -80,24 +80,31 @@ function merge_batches!(obj1::SingleCellObject, obj2::SingleCellObject;
 end
 
 # ==============================================================================
-# 2. Harmony Integration (Iterative Correction)
+# 2. Centroid-Based Batch Alignment (Iterative Heuristic)
 # ==============================================================================
 
 """
-    run_harmony!(obj, batch_key; max_iter=10, n_clusters=10, key="harmony")
+    run_centroid_alignment!(obj, batch_key; max_iter=10, n_clusters=10, key="centroid")
 
-Applies the Harmony batch correction algorithm to the PCA reduction.
-Aligns cells from different batches in a shared embedding space using iterative clustering.
+Centroid-based batch alignment on the PCA embedding. Cells are clustered
+globally, and each cell is shifted by the offset between its batch centroid
+and the global cluster centroid, iterated with re-centering and variance
+rescaling.
+
+This is a lightweight centroid-based heuristic, not the Harmony algorithm.
+It does not implement Harmony soft cluster assignment or its iterative
+regression-based correction, so results will differ from
+`scanpy.external.pp.harmony_integrate`.
 
 
 
 # Arguments
 - `obj`: The `SingleCellObject`.
 - `batch_key`: Column name in `obj.meta_data` for batch IDs.
-- `key`: Key to store the corrected embedding (default: "harmony").
+- `key`: Key to store the corrected embedding (default: "centroid").
 """
-function run_harmony!(obj::SingleCellObject, batch_key::String;
-    max_iter::Int=10, n_clusters::Int=10, key::String="harmony")
+function run_centroid_alignment!(obj::SingleCellObject, batch_key::String;
+    max_iter::Int=10, n_clusters::Int=10, key::String="centroid")
 
     # 1. Validation
     if !("pca" in keys(obj.reductions))
@@ -113,7 +120,7 @@ function run_harmony!(obj::SingleCellObject, batch_key::String;
     parent_mod = parentmodule(@__MODULE__)
     Clustering = getfield(parent_mod, :Clustering)
 
-    println("Running Harmony Integration (k=$n_clusters, iter=$max_iter)...")
+    println("Running centroid-based batch alignment (k=$n_clusters, iter=$max_iter)...")
 
     # Prepare Data
     X = copy(obj.reductions["pca"]) # Cells x Dims
@@ -130,7 +137,7 @@ function run_harmony!(obj::SingleCellObject, batch_key::String;
     # Initialize Z (Embedding)
     Z = copy(X)
 
-    # 2. Harmony Iteration Loop
+    # 2. Alignment Iteration Loop
     for iter in 1:max_iter
         # Step A: Clustering
         # kmeans expects (Dims x Cells), so we transpose Z
@@ -181,8 +188,30 @@ function run_harmony!(obj::SingleCellObject, batch_key::String;
     end
 
     obj.reductions[key] = Z
-    println("Harmony complete. Corrected embedding stored in reductions[\"$key\"].")
+    println("Batch alignment complete. Corrected embedding stored in reductions[\"$key\"].")
     return nothing
+end
+
+"""
+    run_harmony!(obj, batch_key; max_iter=10, n_clusters=10, key="harmony")
+
+Deprecated alias for `run_centroid_alignment!`. The original implementation
+was a centroid-based alignment heuristic rather than the Harmony algorithm.
+The alias preserves the historical default output key (`"harmony"`) so
+existing workflows that access `obj.reductions["harmony"]` continue to work.
+New code should use `run_centroid_alignment!`, whose default key is `"centroid"`.
+
+# Arguments
+- `obj`: The `SingleCellObject`.
+- `batch_key`: Column name in `obj.meta_data` for batch IDs.
+- `max_iter`: Number of alignment iterations.
+- `n_clusters`: Number of global clusters used by the heuristic.
+- `key`: Reduction key (defaults to the legacy value `"harmony"`).
+"""
+function run_harmony!(obj::SingleCellObject, batch_key::String;
+    max_iter::Int=10, n_clusters::Int=10, key::String="harmony")
+    @warn "run_harmony! is deprecated: the implementation is a centroid-based alignment heuristic, not the Harmony algorithm. Use run_centroid_alignment! instead."
+    return run_centroid_alignment!(obj, batch_key; max_iter=max_iter, n_clusters=n_clusters, key=key)
 end
 
 # ==============================================================================
@@ -190,7 +219,7 @@ end
 # ==============================================================================
 
 """
-    run_bbknn!(obj, batch_key; reduction="harmony", neighbors_within_batch=3, trim=nothing)
+    run_bbknn!(obj, batch_key; reduction="centroid", neighbors_within_batch=3, trim=nothing)
 
 Batch Balanced KNN. Constructs a graph where each cell connects to neighbors 
 within its own batch AND neighbors in other batches, ensuring connectivity across datasets.
@@ -203,7 +232,7 @@ within its own batch AND neighbors in other batches, ensuring connectivity acros
 - `trim`: Maximum total neighbors to keep per cell.
 """
 function run_bbknn!(obj::SingleCellObject, batch_key::String;
-    reduction::String="harmony", neighbors_within_batch::Int=3,
+    reduction::String="centroid", neighbors_within_batch::Int=3,
     trim::Union{Int,Nothing}=nothing)
 
     # 1. Validation
@@ -280,15 +309,15 @@ function run_bbknn!(obj::SingleCellObject, batch_key::String;
     end
 
     # 3. Build Graph
-    adj_matrix = zeros(Bool, n_cells, n_cells)
+    # Build the undirected graph edge by edge. This avoids allocating a dense
+    # cells x cells Bool adjacency matrix (O(n^2) memory, ~10 GB at 100k cells)
+    # and matches how find_neighbors! constructs its graph.
+    g = SimpleGraph(n_cells)
     for i in 1:n_cells
         for nbr in all_neighbors[i]
-            adj_matrix[i, nbr] = true
-            adj_matrix[nbr, i] = true
+            add_edge!(g, i, nbr)
         end
     end
-
-    g = SimpleGraph(adj_matrix)
     obj.graphs["neighbors"] = g
 
     # 4. Report Quality

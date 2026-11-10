@@ -20,6 +20,14 @@ This implementation is highly optimized for sparse matrices and uses multi-threa
 
 # Returns
 - A `DataFrame` containing genes, p-values, adjusted p-values, and fold-changes.
+
+# Notes
+- `avg_log2FC` follows the Scanpy convention: log2 of the ratio of
+  linear-scale means, i.e. `log2((expm1(mean1) + 1e-9) / (expm1(mean2) + 1e-9))`,
+  where the means are of log-normalized (log1p) expression.
+- Benjamini-Hochberg correction is applied within each cluster over all genes
+  before thresholding, so `p_val_adj` does not depend on `logfc_threshold`
+  or `min_pct`.
 """
 function find_all_markers(
     obj::SingleCellObject;
@@ -119,9 +127,13 @@ function find_all_markers(
         (n1 == 0 || n2 == 0) && continue
 
         # Mean Expression and LogFC
+        # The means are of log-normalized (log1p) expression, so the fold
+        # change is computed on the linear scale, following Scanpy's
+        # rank_genes_groups: log2((expm1(mean1) + 1e-9) / (expm1(mean2) + 1e-9)).
+        # Taking log2 of the log1p means directly would be a log of a log.
         mean1 = SumExpr[:, k] ./ n1
         mean2 = (total_sum_expr .- SumExpr[:, k]) ./ n2
-        logfc = log2.(mean1 .+ 1e-9) .- log2.(mean2 .+ 1e-9)
+        logfc = log2.((expm1.(mean1) .+ 1e-9) ./ (expm1.(mean2) .+ 1e-9))
 
         # Percent Expressed
         pct1 = SumCounts[:, k] ./ n1
@@ -137,8 +149,15 @@ function find_all_markers(
         Z = [sigma > 0 ? (u - mu) / sigma : 0.0 for u in U1]
         p_vals = 2.0 .* ccdf.(normal_dist, abs.(Z))
 
-        # Filter markers based on thresholds
-        mask = (logfc .> logfc_threshold) .& (pct1 .>= min_pct)
+        # Multiple testing correction: Benjamini-Hochberg is applied WITHIN
+        # each cluster over ALL genes (the full family of tests), matching
+        # Scanpy's rank_genes_groups. Threshold filtering happens afterwards,
+        # so p_val_adj never depends on logfc_threshold or min_pct.
+        p_adj = adjust(p_vals, BenjaminiHochberg())
+
+        # Filter markers based on thresholds (including the 0.05 adjusted
+        # significance cutoff that was previously applied post hoc)
+        mask = (logfc .> logfc_threshold) .& (pct1 .>= min_pct) .& (p_adj .< 0.05)
 
         if any(mask)
             append!(results, DataFrame(
@@ -146,22 +165,22 @@ function find_all_markers(
                 cluster=fill(clus, sum(mask)),
                 avg_log2FC=logfc[mask],
                 p_val=p_vals[mask],
+                p_val_adj=p_adj[mask],
                 pct_1=pct1[mask],
                 pct_2=pct2[mask]
             ))
         end
     end
 
-    # 6. Post-Processing: Multiple Testing Correction
     if nrow(results) > 0
-        println("Adjusting p-values using Benjamini-Hochberg...")
-        results.p_val_adj = adjust(results.p_val, BenjaminiHochberg())
-
-        # Final cleanup: Significance filter and sorting
-        filter!(row -> row.p_val_adj < 0.05, results)
         sort!(results, [:cluster, :avg_log2FC], rev=[false, true])
     else
         @warn "No marker genes found with current thresholds."
+        # Return an empty frame with the documented schema so downstream
+        # consumers (e.g. annotate_clusters!) can handle it gracefully.
+        return DataFrame(gene=String[], cluster=Any[], avg_log2FC=Float64[],
+                         p_val=Float64[], p_val_adj=Float64[],
+                         pct_1=Float64[], pct_2=Float64[])
     end
 
     return results

@@ -31,7 +31,7 @@ using Random
 include("types.jl")
 include("io.jl")                    # 10x, h5ad, and h5 readers
 include("qc.jl")                    # Metric calculation and filtering
-include("batch_normalization.jl")    # Harmony, BBKNN, and Batch alignment
+include("batch_normalization.jl")    # Centroid alignment, BBKNN, and Batch merging
 include("analysis.jl")              # PCA, KNN, Clustering, UMAP
 include("differential_expression.jl")
 include("annotation.jl")            
@@ -56,7 +56,10 @@ export calculate_qc_metrics!, filter_cells!
 
 # Preprocessing & Integration
 export normalize_data!, find_variable_features!, scale_data!
-export run_harmony!, run_bbknn!, merge_batches!, calculate_mixing_score
+export run_centroid_alignment!, run_bbknn!, merge_batches!, calculate_mixing_score
+# run_harmony! is a deprecated alias of run_centroid_alignment! (the
+# implementation was a centroid-based heuristic, not the Harmony algorithm)
+export run_harmony!
 
 # Dimensionality Reduction & Clustering
 export run_pca!, find_neighbors!, run_clustering!, run_graph_clustering!, run_umap!

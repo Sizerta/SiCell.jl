@@ -223,11 +223,26 @@ function annotate_clusters!(obj::SingleCellObject, markers::DataFrame, db::DataF
 
     @warn "Automatic annotation is based on healthy references. Tumor/disease datasets may be misannotated."
 
-    # 1. Calculate Scores
+    # Validate the destination metadata column before any early-return path.
+    # This ensures an empty marker table cannot mask a misspelled cluster key.
+    if !(cluster_col in names(obj.meta_data))
+        throw(ArgumentError("Cluster column '$cluster_col' not found in metadata."))
+    end
+
+    # 1. Guard against unusable marker input (e.g. no gene passed the
+    #    significance filters in find_all_markers).
+    if nrow(markers) == 0 || !("cluster" in names(markers)) || !("gene" in names(markers))
+        @warn "No usable marker genes passed to annotate_clusters!; assigning 'Unknown' to all cells."
+        current_clusters = obj.meta_data[!, cluster_col]
+        obj.meta_data[!, new_label_col] = fill("Unknown", length(current_clusters))
+        return Dict{Any,String}()
+    end
+
+    # 2. Calculate Scores
     # Returns Dict: Cluster ID -> Vector of (Label, Score)
     scores_dict = _calculate_annotation_scores(markers, db, species, organ)
 
-    # 2. Assign Best Labels
+    # 3. Assign Best Labels
     cluster_ids = unique(markers.cluster)
     annotation_map = Dict{Any,String}()
 
@@ -243,11 +258,7 @@ function annotate_clusters!(obj::SingleCellObject, markers::DataFrame, db::DataF
         annotation_map[clus] = label
     end
 
-    # 3. Update Metadata
-    if !(cluster_col in names(obj.meta_data))
-        error("Cluster column '$cluster_col' not found in metadata.")
-    end
-
+    # 4. Update Metadata
     current_clusters = obj.meta_data[!, cluster_col]
     new_labels = [get(annotation_map, c, "Unknown") for c in current_clusters]
     obj.meta_data[!, new_label_col] = new_labels

@@ -30,6 +30,21 @@ using Graphs
         uns=Dict("source" => "SiCell test"),
     )
 
+    # AnnData's public Muon.jl API accepts DataFrames in obsm/varm. Use
+    # nullable DataFrame columns to verify that missing annotation values are
+    # preserved without relying on nullable numeric arrays unsupported by the
+    # documented AnnData constructor.
+    nullable_obsm = DataFrame(
+        dim1=Union{Missing,Float64}[0.1, missing, 0.5],
+        dim2=Union{Missing,Float64}[0.2, 0.4, 0.6],
+    )
+    nullable_varm = DataFrame(
+        score=Union{Missing,Float64}[1.0, missing, 3.0, 4.0],
+    )
+    adata.obsm["qc_annotation"] = nullable_obsm
+    adata.varm["gene_annotation"] = nullable_varm
+    adata.obs[!, :nullable_score] = Union{Missing,Float64}[0.2, missing, 0.8]
+
     obj = from_anndata(adata)
     @test obj isa SingleCellObject
     @test size(obj.counts) == (4, 3)
@@ -49,6 +64,19 @@ using Graphs
     @test Matrix(exported.obsm["X_umap"]) == umap
     @test Matrix(exported.layers["counts"]) == Matrix(counts_layer)
     @test exported.uns["source"] == "SiCell test"
+    @test isequal(exported.obsm["qc_annotation"], nullable_obsm)
+    @test isequal(exported.varm["gene_annotation"], nullable_varm)
+    @test isequal(exported.obs.nullable_score, adata.obs.nullable_score)
+
+    # If nullable numeric arrays enter the SiCell passthrough payload, convert
+    # them to DataFrames because Muon.AnnData's public constructor accepts
+    # DataFrames rather than nullable numeric arrays in obsm/varm.
+    array_payload_obj = from_anndata(adata)
+    nullable_array = Union{Missing,Float64}[0.1 0.2; missing 0.4; 0.5 0.6]
+    array_payload_obj.anndata["obsm"]["nullable_array"] = nullable_array
+    array_payload_export = to_anndata(array_payload_obj)
+    @test array_payload_export.obsm["nullable_array"] isa DataFrame
+    @test isequal(Matrix(array_payload_export.obsm["nullable_array"]), nullable_array)
 
     # SiCell's KNN graph is exported using AnnData's conventional obsp keys.
     graph = SimpleGraph(3)
